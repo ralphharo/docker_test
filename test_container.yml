@@ -1,0 +1,25 @@
+- name: Bring up docker containers
+  hosts: localhost
+
+  vars:
+    inventory:
+      - name: master
+        expose: 22
+        ports: "2200:22"
+  roles:
+    - role: provision_docker
+      provision_docker_inventory: "{{inventory}}"
+
+  tasks:
+    - name: cluster group
+      add_host:
+        hostname: master
+        groups: local_group
+
+- name: Test Install
+  hosts: master
+  vars:
+    ps_options: aux
+
+  tasks:
+    - include: os_info.yml

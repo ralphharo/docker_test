@@ -1,0 +1,206 @@
+---
+
+- name: Get uptime
+  command: uptime
+  register: uptime
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - always
+
+- name: Show uptime
+  debug:
+    var: uptime.stdout_lines
+  when: uptime.rc == 0
+  tags:
+    - always
+
+- name: lsblk command
+  command: lsblk
+  register: lsblk
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-storage
+
+- name: Show lsblk command outputs
+  debug:
+    var: lsblk.stdout_lines
+  when: lsblk.rc == 0
+  tags:
+    - os-storage
+
+- name: lsmod command
+  command: lsmod
+  register: lsmod
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-system
+
+- name: Show lsmod command outputs
+  debug:
+    var: lsmod.stdout_lines
+  when: lsmod.rc == 0
+  tags:
+    - os-system
+
+- name: sysctl parameters
+  command: "sysctl -a"
+  register: sysctl_out
+  changed_when: false
+  ignore_errors: yes
+  tags:
+    - os-system
+
+- name: Show sysctl parameters
+  debug:
+    var: sysctl_out.stdout_lines
+  when: sysctl_out.rc == 0
+  tags:
+    - os-system
+
+- name: df command
+  command: df -h
+  register: df
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-storage
+
+- name: Show df command outputs
+  debug:
+    var: df.stdout_lines
+  when: df.rc == 0
+  tags:
+    - os-storage
+
+- name: df command (inode)
+  command: df -i
+  register: df
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-storage
+
+- name: Show df command outputs (inode)
+  debug:
+    var: df.stdout_lines
+  when: df.rc == 0
+  tags:
+    - os-storage
+
+- name: /etc/fstab
+  command: cat /etc/fstab
+  register: fstab
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-storage
+
+- name: Show /etc/fstab
+  debug:
+    var: fstab.stdout_lines
+  when: fstab.rc == 0
+  tags:
+    - os-storage
+
+- name: uname
+  command: uname -a
+  register: uname
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-kernel
+    - os-hostname
+
+- name: Show uname
+  debug:
+    var: uname.stdout_lines
+  when: uname.rc == 0
+  tags:
+    - os-kernel
+    - os-hostname
+
+- name: cat /etc/hosts
+  command: cat /etc/hosts
+  register: hosts
+  failed_when: false
+  changed_when: false
+  tags:
+    - os-hostname
+
+- name: Show /etc/hosts
+  debug:
+    var: hosts.stdout_lines
+  when: hosts.rc == 0
+  tags:
+    - os-hostname
+
+- name: checking parameters
+  set_fact:
+    valid_ps_options: "{{ ps_options | match('^[A-Za-z]+$') | bool }}"
+  failed_when: ps_options is undefined
+  tags:
+    - os-process
+
+- name: process list
+  command: "ps {{ ps_options }}"
+  register: ps
+  changed_when: no
+  ignore_errors: yes
+  when: valid_ps_options
+  tags:
+    - os-process
+
+- name: Show process list
+  debug:
+    var: ps.stdout_lines
+  when: ps.rc == 0
+  tags:
+    - os-process
+
+- name: Get yum config
+  shell: grep ^ /etc/yum.repos.d/* /etc/yum.conf
+  register: yum
+  changed_when: no
+  ignore_errors: yes
+  tags:
+    - os-yum
+
+- name: Show yum config
+  debug:
+    var: yum.stdout_lines
+  when: yum.rc == 0
+  tags:
+    - os-yum
+
+- name: Get the rsyslog logs
+  shell: grep rsyslogd /var/log/messages | tail -n 100
+  changed_when: no
+  ignore_errors: yes
+  register: log
+  tags:
+    - os-rsyslog
+
+- name: Show rsyslog logs
+  debug:
+    var: log.stdout_lines
+  tags:
+    - os-rsyslog
+
+- name: Get pip packages
+  command: pip list
+  changed_when: no
+  ignore_errors: yes
+  register: pip
+  environment:
+    HTTPS_PROXY: https://proxy:3128 pip list
+  tags:
+    - os-pip
+
+- name: Show pip packages
+  debug:
+    var: pip.stdout_lines
+  tags:
+    - os-pip
